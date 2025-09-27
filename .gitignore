@@ -36,3 +36,5 @@ wget-log*
 kali-config/common/includes.chroot/opt/4rji/bin/winPEASx64.exe
 kali-config/common/includes.chroot/opt/4rji/bin/winPEASx86.exe
 kali-config/common/includes.chroot/opt/4rji/bin/linpeas.sh
+## Ignore local Oh My Zsh copy in skel
+kali-config/common/includes.chroot/etc/skel/.oh-my-zsh/
