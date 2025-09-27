@@ -80,3 +80,13 @@ $ ./build.sh \
 [...]
 $
 ```
+
+## Local Binaries
+
+To avoid committing third-party binaries (which can trigger GitHub push protection), this repo does not include `winPEASx64.exe` anymore. If your build expects it at `kali-config/common/includes.chroot/opt/4rji/bin/winPEASx64.exe`, fetch it locally before building:
+
+```bash
+scripts/fetch-winpeas.sh
+```
+
+The path is ignored by Git via `.gitignore` so it won’t be committed.

@@ -32,3 +32,7 @@ wget-log*
 build.log
 wget-log*
 /binary
+# Ignore local PEAS binaries (remove to avoid secret scanning false positives)
+kali-config/common/includes.chroot/opt/4rji/bin/winPEASx64.exe
+kali-config/common/includes.chroot/opt/4rji/bin/winPEASx86.exe
+kali-config/common/includes.chroot/opt/4rji/bin/linpeas.sh
