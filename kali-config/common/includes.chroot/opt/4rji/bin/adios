@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+
+# Lista de paquetes a instalar
+paquetes=("coreutils" "scrub" )
+
+# Función para verificar si un paquete está instalado (Debian/Ubuntu/Kali)
+paquete_instalado_apt() {  
+    dpkg -l "$1" | grep -q '^ii'  
+}
+
+# Función para verificar si un paquete está instalado (CentOS/RHEL)
+paquete_instalado_yum() {
+    yum list installed "$1" &> /dev/null
+}
+
+# Función para verificar si un paquete está instalado (Fedora)
+paquete_instalado_dnf() {
+    dnf list installed "$1" &> /dev/null
+}
+
+# Función para verificar si un paquete está instalado (Arch Linux)
+paquete_instalado_pacman() {
+    pacman -Qi "$1" &> /dev/null
+}
+
+# Detectar el sistema operativo
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS=$ID
+fi
+
+# Instalar paquetes basados en el sistema operativo
+for paquete in "${paquetes[@]}"; do
+    case $OS in
+        "debian"|"ubuntu"|"kali")
+            if ! paquete_instalado_apt "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo apt-get install -y "$paquete"
+            fi
+            ;;
+        "centos"|"rhel")
+            if ! paquete_instalado_yum "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo yum install -y "$paquete"
+            fi
+            ;;
+        "fedora")
+            if ! paquete_instalado_dnf "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo dnf install -y "$paquete"
+            fi
+            ;;
+        "arch")
+            if ! paquete_instalado_pacman "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo pacman -S --noconfirm "$paquete"
+            fi
+            ;;
+        *)
+            ;;
+    esac
+done
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Verificación de argumento
+if [[ $# -ne 1 ]]; then
+  echo "Usage: $0 <directory>"
+  exit 1
+fi
+
+# Verificar si el directorio existe
+if [ ! -d "$1" ]; then
+    echo "El directorio especificado no existe."
+    exit 1
+fi
+
+# Definir una función recursiva para aplicar scrub a los archivos en el directorio actual y sus subdirectorios
+apply_scrub_recursive() {
+  for file in "$1"/*; do
+    if [ -f "$file" ]; then
+      scrub -p dod "$file"
+    elif [ -d "$file" ]; then
+      apply_scrub_recursive "$file"  # llamada recursiva para aplicar scrub a los subdirectorios
+    fi
+  done
+}
+
+# Aplicar el comando 'scrub' a todos los archivos en el directorio y sus subdirectorios
+apply_scrub_recursive "$1"
+
+# Aplicar el comando 'shred' a todos los archivos dentro del directorio y sus subdirectorios
+for file in "$1"/*; do
+  if [ -f "$file" ]; then
+    shred -zun 10 -v "$file"
+  fi
+done
+
+# Borrar el directorio después de ejecutar los comandos
+rm -rf "$1"
+
+
+# Ejecutar el script con el directorio como argumento
+# ./secure-delete.sh /path/to/directory
+# ./secure-delete.sh /home/user/Downloads

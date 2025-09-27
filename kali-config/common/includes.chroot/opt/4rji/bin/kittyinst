@@ -1,0 +1,105 @@
+#!/usr/bin/env bash
+
+# Lista de paquetes a instalar
+paquetes=("kitty" )
+
+# Función para verificar si un paquete está instalado (Debian/Ubuntu/Kali)
+paquete_instalado_apt() {  
+    dpkg -l "$1" | grep -q '^ii'   2>/dev/null
+}
+
+# Función para verificar si un paquete está instalado (CentOS/RHEL)
+paquete_instalado_yum() {
+    yum list installed "$1" 2> /dev/null
+}
+
+# Función para verificar si un paquete está instalado (Fedora)
+paquete_instalado_dnf() {
+    dnf list installed "$1" 2> /dev/null
+}
+
+# Función para verificar si un paquete está instalado (Arch Linux)
+paquete_instalado_pacman() {
+    pacman -Qi "$1" 2> /dev/null
+}
+
+# Detectar el sistema operativo
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS=$ID
+fi
+
+# Instalar paquetes basados en el sistema operativo
+for paquete in "${paquetes[@]}"; do
+    case $OS in
+        "debian"|"ubuntu"|"kali")
+            if ! paquete_instalado_apt "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo apt-get install -y "$paquete"  2>/dev/null
+            fi
+            ;;
+        "centos"|"rhel")
+            if ! paquete_instalado_yum "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo yum install -y "$paquete" 2>/dev/null
+            fi
+            ;;
+        "fedora")
+            if ! paquete_instalado_dnf "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo dnf install -y "$paquete" 2>/dev/null
+            fi
+            ;;
+        "arch")
+            if ! paquete_instalado_pacman "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo pacman -S --noconfirm "$paquete" 2>/dev/null
+            fi
+            ;;
+        *)
+            ;;
+    esac
+done
+
+
+
+
+# Colores
+green='\033[0;32m'
+yellow='\033[0;33m'
+red='\033[0;31m'
+nocolor='\033[0m'
+
+# Directorio de kitty
+kitty_dir="$HOME/.config/kitty"
+mkdir -p "$kitty_dir"
+echo -e "${green}Directorio de kitty listo:${nocolor} $kitty_dir"
+
+# Archivos a descargar
+declare -A files=(
+  ["kitty.conf"]="https://raw.githubusercontent.com/4rji/dotfiles/main/kitty/kitty.conf"
+  ["color.ini"]="https://raw.githubusercontent.com/4rji/dotfiles/main/kitty/color.ini"
+  ["aura-theme.conf"]="https://raw.githubusercontent.com/4rji/dotfiles/refs/heads/main/kitty/aura-theme.conf"
+)
+
+# Descargar archivos
+for file in "${!files[@]}"; do
+  path="$kitty_dir/$file"
+  wget -q -O "$path" "${files[$file]}"
+  if [ $? -eq 0 ]; then
+    echo -e "${yellow}Archivo actualizado:${nocolor} $path"
+  else
+    echo -e "${red}Error al descargar:${nocolor} $file"
+  fi
+done
+
+
+
+# Mensaje de instalación exitosa
+echo -e "${green}Instalación exitosa.${nocolor}"
+
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+echo "Para editar el tema kitten theme"
+echo ""
+
+

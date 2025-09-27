@@ -1,0 +1,61 @@
+#!/usr/bin/env python3
+import os
+import openai
+
+# Configura la clave de API
+openai.api_key = os.getenv('OPENAI_API_KEY')  # Usa la variable de entorno
+# openai.api_key = 'tu_clave_de_api'  # Descomenta esta línea si prefieres hardcodear la clave
+
+def main():
+    # Códigos de colores ANSI
+    BLUE = '\033[94m'
+    GREEN = '\033[92m'
+    RESET = '\033[0m'
+
+    print("Amigo: What do you want?.\n")
+
+    # Mensaje inicial del sistema
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "Eres un asistente experto en programación, Linux y ciberseguridad, pentesting, hackingtools, white hat hacker. "
+                "Proporcionas respuestas cortas, el usuario es medio-avanzado. No explicar lo basico a menos que se pregunte."
+            )
+        }
+    ]
+
+    while True:
+        user_input = input(f"{BLUE}>  {RESET}")
+
+        if user_input.lower() == 'Si...':
+            print(f"{GREEN}> {RESET}\n")
+            messages.append({"role": "assistant", "content": "Sí"})
+            continue
+
+        if user_input.lower() == 'Exit':
+            print(f"{GREEN}Amigo: ¡Adios!{RESET}")
+            break
+
+        messages.append({"role": "user", "content": user_input})
+
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-4o",
+                messages=messages
+            )
+            assistant_message = response['choices'][0]['message']['content']
+            print(f"{GREEN}<  {assistant_message}{RESET}\n")
+            messages.append({"role": "assistant", "content": assistant_message})
+        except Exception as e:
+            print(f"Ocurrió un error: {e}")
+            break
+
+if __name__ == "__main__":
+    main()
+
+# Si no funciona, activa el entorno virtual:
+# source amigo/bin/activate
+#instalar esa version que funciona, si no desinstalar primero la otra ( pip uninstall openai ) y luego esta: 
+#pip install openai==0.27.8
+

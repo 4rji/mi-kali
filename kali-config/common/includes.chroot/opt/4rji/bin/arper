@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
+# Colores para resaltar las líneas y preguntas
+color1="\e[32m"  # Verde
+color2="\e[34m"  # Azul
+color3="\e[33m"  # Amarillo
+color4="\e[35m"  # Morado
+color_reset="\e[0m"  # Reset de color
+
+# Función para imprimir una línea con colores
+function print_colored_line {
+    echo -e "${color1}$1${color_reset}"
+}
+
+# Función para imprimir una pregunta con colores
+function print_colored_question {
+    echo -e "${color2}$1${color_reset}"
+}
+
+# Función para imprimir un mensaje de advertencia con colores
+function print_colored_warning {
+    echo -e "${color3}$1${color_reset}"
+}
+
+# Función para imprimir un mensaje de confirmación con colores
+function print_colored_confirmation {
+    echo -e "${color4}$1${color_reset}"
+}
+
+# Pedir al usuario el nombre del archivo
+print_colored_question "Target name for the new file:"
+read nombre_archivo
+echo ""
+# Pedir al usuario la interfaz, la IP de destino y la puerta de enlace
+print_colored_question "Interface name:"
+read interface
+echo ""
+print_colored_question "IP target:"
+read tgt_ip
+echo ""
+print_colored_question "Gateway IP:"
+read tgt_gateway
+
+# Crear el archivo con los datos proporcionados
+echo "interface = \"$interface\"" > $nombre_archivo
+echo "tgt_ip = \"$tgt_ip\"" >> $nombre_archivo
+echo "tgt_gateway = \"$tgt_gateway\"" >> $nombre_archivo
+echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
+# Preguntar al usuario si desea ejecutar arper
+print_colored_question "¿Desea ejecutar arpers? (s/n): "
+read -n1 respuesta
+
+# Si la respuesta es afirmativa, ejecutar arper con el archivo creado
+if [[ $respuesta == "s" || $respuesta == "S" ]]; then
+    print_colored_confirmation "Ejecutando arpers con el archivo $nombre_archivo"
+    sudo arpers $nombre_archivo
+else
+    print_colored_warning "No se ejecutara arpers."
+fi
+echo ""

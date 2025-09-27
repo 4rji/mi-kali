@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+
+if [ -z "$1" ]; then
+  echo "Uso: $0 'palabra'"
+  exit 1
+fi
+
+PALABRA="$1"
+
+grep -r "$PALABRA" /opt/4rji/bin 2>/dev/null \
+  --exclude-dir='comprimidos' \
+  --exclude='linenum.sh.enc' \
+  --exclude='linpeas.sh' \
+  --exclude='impacto.zip' \
+  --exclude='winPEASx64.exe' \
+  --exclude='winPEASx86.exe' \
+  --exclude='tk.enc' \
+  --exclude='README.md' \
+  --exclude='pspy64' \
+  --exclude='chisel4' \
+  --exclude='SharpHound.ps1' \
+  --exclude='yazi' \
+  --exclude='agent.zip' \
+  --exclude='meg' \
+  --exclude='LinEnum.sh' \
+  --exclude='chisel' \
+  --exclude='assetfinder' \
+  --exclude='kerbrute_linux_amd64' \
+  --exclude='proxyserver' \
+  --exclude='chise2' \
+  --exclude='kerbrute_linux_amd64' \
+  --exclude='proxyserver' \
+  --exclude='chise2' \
+  --exclude='airsendm' \
+  --exclude='amigo' \
+  --exclude='amigom' \
+  --exclude='backd' \
+  --exclude='backdm' \
+  --exclude='copyrsm' \
+  --exclude='dominf' \
+  --exclude='ftpbrute' \
+  --exclude='locip' \
+  --exclude='locipm' \
+  --exclude='miniserver1' \
+  --exclude='miniserverw' \
+  --exclude='nets' \
+  --exclude='netsm' \
+  --exclude='nmap-fullm' \
+  --exclude='nmap-halfm' \
+  --exclude='nmapX' \
+  --exclude='nmapXm' \
+  --exclude='nv-agent' \
+  --exclude='pingg' \
+  --exclude='pingm' \
+  --exclude='siegee' \
+  --exclude='trafico' \
+  --exclude='traficom' \
+| while IFS= read -r line; do
+    file="$(echo "$line" | cut -d':' -f1)"
+    content="$(echo "$line" | cut -d':' -f2-)"
+    name="$(basename "$file")"
+    content="$(echo "$content" | sed 's/^ *//')"
+    echo -e "\033[1;32m${name}\033[0m\t${content}"
+done

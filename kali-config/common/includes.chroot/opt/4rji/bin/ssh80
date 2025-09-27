@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
+echo "ssh -L 8080:center.campus.edu:443 usuario@servidor_remoto"
+echo "Para acceder en el navegador https://localhost:8080/"
+echo "solo redirige el trafico de ese sitio web, no otro trafico."
+echo "Puede ser una ip o pagina web, para encontrar la ip hacer un ping a la pagina"
+echo ""
+echo "Para acceder a una maquina sobre otra, por ejemplo xps y ass (Jump)"
+echo "ssh -D 1080 -J xps@10.0.4.205 nat@192.168.122.138"
+      
+
+echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
+
+# Preguntar al usuario por el puerto local a usar para la redirección
+read -p "Puerto local a dirigir el localhost: (ex. 8080): " puerto_local
+
+# Preguntar al usuario por la dirección IP de la máquina de destino
+read -p "Direccion IP destino o pagina web(ex. center.campus): " ip_destino
+
+# Preguntar al usuario por el puerto de destino en la máquina remota (el puerto del servicio, ej. 8000)
+read -p "Puerto destino(ex. 80 o 443 para https): " puerto_remoto
+
+# Preguntar al usuario por el usuario@IP de la máquina anfitriona y su puerto SSH
+read -p "Host o usuario@IP del servidor (ex. apa@10.0.4.120): " usuario_anfitrion
+read -p "Puerto SSH (Enter para 22): " puerto_ssh
+
+# Asignar el puerto 22 como predeterminado si el usuario no ingresa un puerto
+if [ -z "$puerto_ssh" ]; then
+    puerto_ssh="22"
+fi
+
+# Construir el comando SSH con los valores ingresados por el usuario
+comando_ssh="ssh -N -L ${puerto_local}:${ip_destino}:${puerto_remoto} ${usuario_anfitrion} -p ${puerto_ssh}"
+
+echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
+# Mostrar un mensaje para usar el navegador
+echo ""
+
+echo -e "\033[31mUsar firefox localhost:$puerto_local para acceder al recurso de $ip_destino\033[0m"
+
+sleep 1
+echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
+
+
+echo "Ejecutando el comando:"
+echo ""
+
+echo "$comando_ssh"
+sleep 1
+echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
+
+# Ejecutar el comando SSH
+$comando_ssh
+

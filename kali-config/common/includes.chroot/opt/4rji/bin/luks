@@ -1,0 +1,134 @@
+#!/usr/bin/env bash
+# Script para crear un contenedor LUKS interactivamente
+# Pregunta tamaño (en MB) y nombre, crea el contenedor, lo formatea y lo monta.
+# Luego muestra cómo desmontar y cerrar.
+
+set -euo pipefail
+
+
+# Función para mostrar mensajes
+echo_msg() {
+  echo "=============================================="
+  echo "$1"
+  echo "=============================================="
+}
+
+
+echo ""
+echo "_________________________________________________________"
+echo ""
+# Mensaje al inicio
+echo -e "\e[33mPara montarlo de nuevo después:\e[0m"
+echo -e "\e[97m  sudo cryptsetup open nombre.luks nombre\e[0m"
+echo -e "\e[97m  sudo mkdir -p /mnt/nombre\e[0m"
+echo -e "\e[97m  sudo mount /dev/mapper/nombre /mnt/nombre\e[0m"
+
+echo -e "\e[32m_________________________________________________________\e[0m"
+echo ""
+
+echo -e "\e[33mPara desmontar y cerrar, ejecuta:\e[0m"
+echo -e "\e[97m  sudo umount /mnt/nombre\e[0m"
+echo -e "\e[97m  sudo cryptsetup close nombre\e[0m"
+echo ""
+
+echo "_________________________________________________________"
+echo ""
+echo ""
+
+read -p $'\e[32m     Tamaño del contenedor a crear en MB: \e[0m' SIZE_MB
+read -p $'\e[32m     Nombre del contenedor (sin extensión): \e[0m' NAME
+
+echo ""
+echo -e "\e[32m_________________________________________________________\e[0m"
+echo ""
+
+
+# Variables
+target_file="${NAME}.luks"
+mapper_name="${NAME}"
+mount_point="/mnt/${NAME}"
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+echo -e "\e[31mEjecutando: dd if=/dev/zero of=${target_file} bs=1M count=${SIZE_MB}\e[0m"
+
+echo ""
+
+dd if=/dev/zero of="${target_file}" bs=1M count="${SIZE_MB}"
+
+echo ""
+echo "_________________________________________________________"
+echo ""
+echo -e "\e[31mEjecutando: sudo cryptsetup luksFormat ${target_file}\e[0m"
+
+echo ""
+
+sudo cryptsetup luksFormat "${target_file}"
+
+
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+echo -e "\e[31mEjecutando: sudo cryptsetup open ${target_file} ${mapper_name}\e[0m"
+
+echo ""
+
+
+sudo cryptsetup open "${target_file}" "${mapper_name}"
+
+echo ""
+echo "_________________________________________________________"
+echo ""
+echo -e "\e[31mEjecutando: sudo mkfs.ext4 /dev/mapper/${mapper_name}\e[0m"
+
+echo ""
+
+
+sudo mkfs.ext4 "/dev/mapper/${mapper_name}"
+
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+echo -e "\e[31mEjecutando: sudo mkdir -p ${mount_point}\e[0m"
+
+echo ""
+
+
+sudo mkdir -p "${mount_point}"
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+echo -e "\e[31mEjecutando: sudo mount /dev/mapper/${mapper_name} ${mount_point}\e[0m"
+
+echo ""
+
+sudo mount "/dev/mapper/${mapper_name}" "${mount_point}"
+
+
+# Instrucciones para desmontar y cerrar
+
+cat << EOF
+
+
+EOF
+
+echo_msg "Contenedor '${target_file}' creado y montado en: ${mount_point}"
+
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+echo -e "\e[31mPara desmontar y cerrar, ejecuta:\e[0m"
+echo ""
+echo "  sudo umount ${mount_point}"
+echo "  sudo cryptsetup close ${mapper_name}"
+echo ""
+echo -e "\e[31mPara montarlo de nuevo después:\e[0m"
+echo ""
+echo "  sudo cryptsetup open ${target_file} ${mapper_name}"
+echo "  sudo mkdir -p ${mount_point}"
+echo "  sudo mount /dev/mapper/${mapper_name} ${mount_point}"

@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "[*] Sobrescribiendo /etc/filebeat/modules.d/zeek.yml ..."
+sudo tee /etc/filebeat/modules.d/zeek.yml >/dev/null <<'YAML'
+- module: zeek
+
+  # ESENCIALES
+  connection:
+    enabled: true
+    var.paths:
+      - /opt/zeek/logs/current/conn.log
+
+  dns:
+    enabled: true
+    var.paths:
+      - /opt/zeek/logs/current/dns.log
+
+  http:
+    enabled: true
+    var.paths:
+      - /opt/zeek/logs/current/http.log
+
+  ssl:
+    enabled: true
+    var.paths:
+      - /opt/zeek/logs/current/ssl.log
+
+  files:
+    enabled: true
+    var.paths:
+      - /opt/zeek/logs/current/files.log
+
+  weird:
+    enabled: true
+    var.paths:
+      - /opt/zeek/logs/current/weird.log
+
+  capture_loss:
+    enabled: true
+    var.paths:
+      - /opt/zeek/logs/current/capture_loss.log
+
+  stats:
+    enabled: true
+    var.paths:
+      - /opt/zeek/logs/current/stats.log
+
+  # YA LOS TENÍAS (deja activos si te sirven)
+  dhcp:
+    enabled: true
+    var.paths:
+      - /opt/zeek/logs/current/dhcp.log
+
+  ntp:
+    enabled: true
+    var.paths:
+      - /opt/zeek/logs/current/ntp.log
+
+  known_services:
+    enabled: true
+    var.paths:
+      - /opt/zeek/logs/current/known_services.log      
+
+YAML
+
+echo
+echo "[*] Validando sintaxis de configuración..."
+sudo filebeat test config -e || { echo "❌ Error en configuración"; exit 1; }
+
+echo
+echo "[*] Reiniciando Filebeat..."
+sudo systemctl restart filebeat
+
+echo
+echo "[*] Estado del servicio Filebeat:"
+sudo systemctl status filebeat --no-pager -l | head -n 20
+
+echo
+echo "[*] Últimas 20 líneas de logs de Filebeat:"
+sudo journalctl -u filebeat --no-pager | tail -n 20

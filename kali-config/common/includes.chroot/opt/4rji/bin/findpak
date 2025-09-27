@@ -1,0 +1,131 @@
+#!/usr/bin/env bash
+
+# Verificar si se proporciona un argumento para el nombre del paquete o servicio
+if [ -z "$1" ]; then
+    echo "Debe especificar el nombre parcial o completo del paquete o servicio despues del script."
+    exit 1
+fi
+
+usuarioInput="$1"
+
+echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
+echo "Buscando cohincidencia con:  $usuarioInput"
+echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
+echo ""
+
+# Función para detectar la distribución de Linux
+detectar_distro() {
+    if [[ -f /etc/debian_version ]]; then
+        DISTRO="Debian"
+    elif [[ -f /etc/redhat-release ]]; then
+        DISTRO="RedHat"
+    elif [[ -f /etc/arch-release ]]; then
+        DISTRO="Arch"
+    else
+        DISTRO="Unknown"
+    fi
+    echo -e "         \e[1;36m>>>>  Distribución detectada: $DISTRO\e[0m". 
+    echo ""
+}
+
+# Asignar el nombre del paquete o servicio proporcionado como argumento al script
+paquete="$usuarioInput"
+
+# Función para buscar un paquete
+buscar_paquete() {
+    echo ""
+    echo ""
+    echo ""
+    echo ""
+    echo ""
+    echo ""
+    echo ""
+    echo -e "   \e[1;35m**************************    PAQUETES      **************************\e[0m"
+    echo ""
+    read -p "¿Deseas buscar en paquetes? (Enter/c): " respuesta
+    if [[ $respuesta != "c" ]]; then
+        echo ""
+        echo ""
+        echo -e "Buscando  \e[1;32m** PAQUETES **\e[0m que coincidan con '\e[1;32m$paquete\e[0m'..."
+        echo ""
+        echo ""
+
+        case $DISTRO in
+            Debian)
+                dpkg -l | grep "$paquete" 2>/dev/null
+                ;;
+            RedHat)
+                rpm -qa | grep "$paquete" 2>/dev/null
+                ;;
+            Arch)
+                pacman -Qs "$paquete" 2>/dev/null
+                ;;
+            *)
+                echo "Distribución no soportada o no detectada."
+                ;;
+        esac
+    fi
+}
+
+
+# Función para buscar servicios relacionados
+buscar_servicios() {
+    echo ""
+    echo ""
+    echo ""
+    echo ""
+    echo ""
+    echo ""
+    echo ""
+    echo -e "   \e[1;35m**************************    SERVICIOS      **************************\e[0m"
+
+    echo ""
+    read -p "¿Deseas buscar en servicios? (Enter/c): " respuesta
+    if [[ $respuesta != "c" ]]; then
+        echo ""
+        echo ""        
+        echo ""        
+        echo -e "Buscando \e[1;32m** SERVICIOS **\e[0m que coincidan con '\e[1;32m$paquete\e[0m'..."
+        echo ""
+        echo ""
+        #                sleep 2
+        systemctl list-units --type service --all | grep "$paquete" 2>/dev/null
+    fi
+}
+echo ""
+echo ""
+# Función para buscar en systemd
+buscar_systemd() {
+    echo ""
+    echo ""
+    echo ""
+    echo ""
+    echo ""
+    echo ""
+    echo ""
+    echo -e "   \e[1;35m**************************   SYSTEMD   ***************************\e[0m"
+    echo ""
+    read -p "¿Deseas buscar en systemd? (Enter/c): " respuesta
+    if [[ $respuesta != "c" ]]; then
+        echo ""
+        echo ""
+        echo ""
+
+        echo -e "Buscando archivos de configuración de \e[1;32m** SYSTEMD **\e[0m para '\e[1;32m$paquete\e[0m'..."
+        echo ""
+        echo ""    
+#        sleep 2
+        ls -l /etc/systemd/system/*"$paquete"* /lib/systemd/system/*"$paquete"* /usr/lib/systemd/system/*"$paquete"* 2>/dev/null
+    fi
+}
+
+# Principal
+detectar_distro
+buscar_paquete
+buscar_servicios
+buscar_systemd
+
+
+echo ""
+echo ""
+echo ""

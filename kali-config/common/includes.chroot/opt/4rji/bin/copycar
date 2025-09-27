@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+#creo copia una carpeta. 
+echo ""
+echo "_________________________________________________________"
+echo ""
+echo -e "\033[1;33mscp -r source_dir client_info:~.\033[0m"
+echo -e "\033[1;33mscp -r -P port_number source_dir client_info:~.\033[0m"
+
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+
+
+# Verificar si se ha proporcionado una carpeta para copiar
+if [ -z "$1" ]; then
+    echo "Usage: copydir directory_to_copy"
+    exit 1
+fi
+
+
+# Ruta del directorio que quiere copiar
+source_dir="$1"
+
+# Ask the user if they want to use a specific port
+echo -n -e "\033[1;32mPort or use default Enter? [s/Enter]: \033[0m"
+read use_specific_port
+
+# Check if the user wants to use a specific port
+if [[ $use_specific_port == "s" || $use_specific_port == "S" ]]; then
+    # Solicitar el puerto específico
+    echo -n -e "\033[1;32mPuerto: \033[0m"
+    read port_number
+    # Preguntar al usuario el nombre de usuario y la dirección IP del cliente de destino con el puerto específico
+    echo -n -e "\033[1;32mHost o IP del cliente de destino (usuario@ip -p puerto): \033[0m"
+    read client_info
+    # Copiar el directorio especificado al cliente de destino en el directorio HOME usando el puerto específico
+    scp -r -P "$port_number" "$source_dir" "$client_info:~"
+else
+    # Preguntar al usuario el nombre de usuario y la dirección IP del cliente de destino usando el puerto por defecto
+    echo -n -e "\033[1;32mHost o IP del cliente de destino (usuario@ip): \033[0m"
+    read client_info
+    # Copiar el directorio especificado al cliente de destino en el directorio HOME sin crear una carpeta adicional
+    scp -r "$source_dir" "$client_info:~"
+fi

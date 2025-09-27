@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+echo ""
+
+# Create Proxmox.desktop in the current directory
+echo "[Desktop Entry]" > Proxmox.desktop
+echo "Name=Proxmox" >> Proxmox.desktop
+echo "Comment=Proxmox" >> Proxmox.desktop
+echo "Exec=/opt/4rji/apps/Proxmox-App-1.0.0.AppImage %U" >> Proxmox.desktop
+echo "Icon=/home/natasha/GitHub/Proxmox-App/build/icon.png" >> Proxmox.desktop
+echo "Terminal=false" >> Proxmox.desktop
+echo "Type=Application" >> Proxmox.desktop
+echo "Categories=Utility;" >> Proxmox.desktop
+echo "X-Desktop-File-Install-Version=0.28" >> Proxmox.desktop
+
+# Inform user
+echo "\nProxmox.desktop created in the current directory.\n"
+
+# Next steps
+echo "Now run the following commands to finalize:"
+echo "sudo chmod +x Proxmox.desktop"
+echo "sudo cp Proxmox.desktop /usr/share/applications/"
+echo "sudo desktop-file-install /usr/share/applications/Proxmox.desktop"
+echo "sudo update-desktop-database"
+echo "desktop-file-validate /usr/share/applications/Proxmox.desktop"
+
+echo ""

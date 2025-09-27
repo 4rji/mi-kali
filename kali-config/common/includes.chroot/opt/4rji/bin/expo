@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+
+# Function to print in color
+print_color() {
+    local color_code=$1
+    shift
+    echo -e "\e[1;${color_code}m$@\e[0m"
+}
+
+# Function to ping an IP
+ping_ip() {
+    local ip=$1
+    echo ""
+    print_color 36 "Pinging IP: $ip"
+    echo ""
+    ping -c 1 "$ip"
+}
+
+# Function to determine the operating system
+determine_os() {
+    local ip=$1
+    local os_type
+    os_type=$(timeout 1s whichsys "$ip")  # Assign the output of whichsys to the variable
+    echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+
+    print_color 31 "$os_type"
+    echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+
+    echo "$os_type" > OS-type  # Save the output to the OS-type file
+}
+
+# Check if an argument was provided
+if [ $# -eq 0 ]; then
+    echo "Please provide an argument for the script."
+    exit 1
+fi
+
+# Assign the argument to a variable
+ip="$1"
+
+# Call the functions
+ping_ip "$ip"
+determine_os "$ip"
+
+# After pinging and determining the operating system, execute expo1 and expo2
+expo1 "$ip"
+
+# Check if expo1 executed successfully
+if [ $? -ne 0 ]; then
+    echo "The script expo1 did not execute successfully. Exiting the script."
+    exit 1
+fi
+
+expo2

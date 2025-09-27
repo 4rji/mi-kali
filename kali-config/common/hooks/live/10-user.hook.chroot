@@ -1,0 +1,16 @@
+#!/bin/sh
+set -e
+
+# Borrar usuario kali si existe
+if id kali >/dev/null 2>&1; then
+    deluser --remove-home kali
+fi
+
+# Crear usuario 4rji con Zsh por defecto
+useradd -m -s /usr/bin/zsh 4rji
+
+# Password = 4rji
+echo "4rji:4rji" | chpasswd
+
+# Sudo
+usermod -aG sudo 4rji

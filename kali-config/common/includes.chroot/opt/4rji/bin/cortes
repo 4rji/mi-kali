@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+#Agregar mas pronto
+
+echo '''
+cat etc/passwd | cut -d ":" -f 1 >> users
+
+awk -F: '{ if ($NF ~ /sh$/) print $1}' /etc/passwd      
+
+
+'''

@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+if [ $# -lt 1 ]; then
+    echo "Uso: $0 <subred1> [subred2] [subred3] ..."
+    exit 1
+fi
+
+echo -e "\n\nejecutando ping -c 1\n\n"
+sleep 0.5
+
+tempfile=$(mktemp)
+
+for subnet in "$@"; do
+    for ip in $(seq 1 254); do
+        ping -c 1 "$subnet.$ip" | grep "64 bytes" | cut -d " " -f 4 | tr -d ":" | tee -a "$tempfile" &
+    done
+done
+
+wait
+
+echo -e "\n\nhecho\n"
+
+read -p "¿Desea guardar un archivo de IPs? (s/n): " guardar
+echo -e "\n\n"
+
+if [[ $guardar == "s" ]]; then
+    cp "$tempfile" .ips1.txt
+    sed 's/ is up//' .ips1.txt > ips.txt
+    echo "Archivo guardado como ips.txt"
+fi
+
+rm "$tempfile"
+echo -e "\n*** Precaución *** Solo está hecho para /24\n"

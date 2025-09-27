@@ -1,0 +1,163 @@
+#!/usr/bin/env bash
+echo ""
+
+# Lista de paquetes a instalar
+#paquetes=("dnsutils" "jq" "systemd" "iproute2" )
+
+# Función para verificar si un paquete está instalado (Debian/Ubuntu/Kali)
+paquete_instalado_apt() {  
+    dpkg -l "$1" | grep -q '^ii'   2>/dev/null
+}
+
+# Función para verificar si un paquete está instalado (CentOS/RHEL)
+paquete_instalado_yum() {
+    yum list installed "$1" 2> /dev/null
+}
+
+# Función para verificar si un paquete está instalado (Fedora)
+paquete_instalado_dnf() {
+    dnf list installed "$1" 2> /dev/null
+}
+
+# Función para verificar si un paquete está instalado (Arch Linux)
+paquete_instalado_pacman() {
+    pacman -Qi "$1" 2> /dev/null
+}
+
+# Detectar el sistema operativo
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS=$ID
+fi
+
+# Instalar paquetes basados en el sistema operativo
+for paquete in "${paquetes[@]}"; do
+    case $OS in
+        "debian"|"ubuntu"|"kali")
+            if ! paquete_instalado_apt "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo apt-get install -y "$paquete"  2>/dev/null
+            fi
+            ;;
+        "centos"|"rhel")
+            if ! paquete_instalado_yum "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo yum install -y "$paquete" 2>/dev/null
+            fi
+            ;;
+        "fedora")
+            if ! paquete_instalado_dnf "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo dnf install -y "$paquete" 2>/dev/null
+            fi
+            ;;
+        "arch")
+            if ! paquete_instalado_pacman "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo pacman -S --noconfirm "$paquete" 2>/dev/null
+            fi
+            ;;
+        *)
+            ;;
+    esac
+done
+
+# ---- Parte de información de red ----
+echo ""
+
+# Color codes
+green="\e[32m"
+yellow="\e[33m"
+reset="\e[0m"
+
+# Función para obtener la interfaz de red
+get_network_interface() {
+    if ifconfig wlan0 &>/dev/null; then
+        echo "wlan0"
+    else
+        interface=$(ip route | awk '/default/ {print $5}')
+        echo "$interface"
+    fi
+}
+
+# Obtener la interfaz de red
+network_interface=$(get_network_interface)
+
+echo -e "\e[33;1m                _______________ INTERFACES _______________\e[0m\n"
+
+echo ""
+ip -4 addr show | awk '/inet/ && !/127\.0\.0\.1/ {split($2, a, "/"); printf "\033[1;34m%s\033[0m: \033[1;32m%s\033[0m\n", $NF, a[1]}'
+echo ""
+
+# Obtener IP pública directamente sin barra
+timeout 1.5 dig +short myip.opendns.com @resolver1.opendns.com | while read -r ip; do
+    cols=$(tput cols)
+    ip_length=${#ip}
+    spaces=$(( (cols - ip_length) / 2 ))
+    printf "%$((spaces - 35))s\e[31m%s\e[0m\n" "" "$ip"
+done
+
+printf "\e[34;1m_________________________________________________________\e[0m\n"
+echo ""
+
+check_ip() {
+    local url_list=(
+        'https://ipinfo.io/json'
+        'https://api.myip.com'
+        'https://ifconfig.me/all.json'
+    )
+
+    for url in "${url_list[@]}"; do
+        echo -e "\e[38;5;94mInformacion IP de $url...\e[0m"
+        echo ""
+        local request
+        request="$(curl -s "$url")"
+        local response="$?"
+
+        if [[ "$response" -ne 0 ]]; then
+            echo "Error al conectar con $url"
+            continue
+        fi
+
+        if [[ "$url" == "https://ipinfo.io/json" ]]; then
+            echo "$request" | jq -r '.ip, .city, .region, .country, .postal // empty' | awk '{print "\033[33m" $0 "\033[0m"}'
+            return 0
+        elif [[ "$url" == "https://api.myip.com" ]]; then
+            echo "$request" | jq -r '.ip, .country // empty' | awk '{print "\033[33m" $0 "\033[0m"}'
+            return 0
+        elif [[ "$url" == "https://ifconfig.me/all.json" ]]; then
+            echo "$request" | jq -r '.ip_addr, .country // empty' | awk '{print "\033[33m" $0 "\033[0m"}'
+            return 0
+        fi
+    done
+
+    echo "No se pudo obtener la dirección IP publica desde las fuentes disponibles."
+}
+
+# Mostrar servidores DNS
+if [ -f /etc/resolv.conf ]; then
+    echo -e "\033[1;33mConfigured DNS servers:\033[0m"
+    grep "nameserver" /etc/resolv.conf | awk '{print "\033[1;31m" $2 "\033[0m"}'
+else
+    echo -e "\033[1;33mThe /etc/resolv.conf file does not exist.\033[0m"
+fi
+
+echo ""
+
+host="google.com"
+timeout 1.5 ping -c 1 "$host" > /dev/null 2>&1
+
+if [[ $? -eq 0 ]]; then
+  echo -e "\e[32mThe Internet connection is active.\e[0m"
+else
+  echo -e "\e[31mUnable to access the Internet.\e[0m"
+fi 
+
+echo ""
+echo -e "\e[36m_________________________________________________________\e[0m"
+echo ""
+
+# Ejecutar automáticamente la función sin preguntar
+check_ip
+
+echo ""

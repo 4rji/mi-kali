@@ -1,0 +1,134 @@
+#!/usr/bin/env bash
+
+
+
+# Lista de paquetes a instalar
+paquetes=("lolcat" "figlet")
+
+# Función para verificar si un paquete está instalado (Debian/Ubuntu/Kali)
+paquete_instalado_apt() {
+    dpkg -l "$1" | grep -q '^ii'  
+}
+
+# Función para verificar si un paquete está instalado (CentOS/RHEL)
+paquete_instalado_yum() {
+    yum list installed "$1" &> /dev/null
+}
+
+# Función para verificar si un paquete está instalado (Fedora)
+paquete_instalado_dnf() {
+    dnf list installed "$1" &> /dev/null
+}
+
+# Función para verificar si un paquete está instalado (Arch Linux)
+paquete_instalado_pacman() {
+    pacman -Qi "$1" &> /dev/null
+}
+
+# Detectar el sistema operativo
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS=$ID
+fi
+
+# Instalar paquetes basados en el sistema operativo
+for paquete in "${paquetes[@]}"; do
+    case $OS in
+        "debian"|"ubuntu"|"kali")
+            if ! paquete_instalado_apt "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo apt-get install -y "$paquete"
+            fi
+            ;;
+        "centos"|"rhel")
+            if ! paquete_instalado_yum "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo yum install -y "$paquete"
+            fi
+            ;;
+        "fedora")
+            if ! paquete_instalado_dnf "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo dnf install -y "$paquete"
+            fi
+            ;;
+        "arch")
+            if ! paquete_instalado_pacman "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo pacman -S --noconfirm "$paquete"
+            fi
+            ;;
+        *)
+            ;;
+    esac
+done
+
+
+
+echo ""
+# Descargar el archivo desde la URL
+wget -O neoconf https://raw.githubusercontent.com/4rji/4rji/refs/heads/main/neoconf
+
+# Verificar si la descarga fue exitosa
+if [ $? -eq 0 ]; then
+    # Crear la carpeta si no existe
+    mkdir -p ~/.config/neofetch
+    
+    # Mover el archivo a la ubicación deseada
+    mv neoconf ~/.config/neofetch/config.conf
+
+    echo "El archivo se ha descargado y movido correctamente."
+    echo ""
+    
+    # Verificar si la variable 'host_nombre' ya está establecida
+    if [ -z "$host_nombre" ]; then
+        # Preguntar al usuario por el nuevo nombre si la variable no está establecida
+        read -p "Nombre del host nuevo: " nuevo_nombre
+    else
+        # Usar el valor existente de la variable
+        nuevo_nombre=$host_nombre
+        echo "Usando el nombre del host existente: $nuevo_nombre"
+    fi
+
+    # Reemplazar la palabra "casiton" en /opt/4rji/bin/nff con el nuevo nombre usando sudo
+    sudo sed -i "s/casiton/$nuevo_nombre/g" /opt/4rji/bin/nff
+
+    echo "Se ha realizado el reemplazo en /opt/4rji/bin/nff con el nuevo nombre."
+
+    # Reemplazar la línea con figlet en /opt/4rji/bin/nff
+    sudo sed -i "s/figlet -f slant -c \"casiton\" | lolcat/figlet -f slant -c \"$nuevo_nombre\" | lolcat/g" /opt/4rji/bin/nff
+
+    echo "Se ha reemplazado la línea de figlet en /opt/4rji/bin/nff con el nuevo nombre."
+
+    # Establecer la variable en Zsh, solo si fue solicitado un nuevo nombre
+    if [ -z "$host_nombre" ]; then
+        echo "export host_nombre='$nuevo_nombre'" >> ~/.zshrc
+        echo "Variable 'host_nombre' establecida para uso futuro en Zsh."
+    fi
+
+else
+    echo "Hubo un error al descargar el archivo."
+fi
+
+sudo cp /opt/4rji/bin/nff /opt/4rji/bin/wm
+
+
+
+echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
+echo "si no funciona hacerlo manual"
+echo "Copiado a portapeles"
+echo ""
+echo "sudo sed -i \"s/casiton/$nuevo_nombre/g\" /opt/4rji/wm" 
+echo "sudo sed -i \"s/casiton/$nuevo_nombre/g\" /opt/4rji/wm" | xclip -sel clip
+
+echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
+
+sudo mv /opt/4rji/bin/wm /usr/bin/wm
+
+
+
+echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
+echo "Restart the shell"
+echo "source ~/.zshrc"
+echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
+

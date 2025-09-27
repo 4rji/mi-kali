@@ -1,3 +1,21 @@
+
+# Live-build generated directories
+binary/
+chroot/
+cache/
+images/
+
+# Initrd, kernel, squashfs
+*.img
+*.squashfs
+*.iso
+*.deb
+
+# Logs
+build.log
+wget-log*
+
+
 ## Directories
 /.build/
 /cache/
@@ -13,3 +31,4 @@
 .mirror
 build.log
 wget-log*
+/binary

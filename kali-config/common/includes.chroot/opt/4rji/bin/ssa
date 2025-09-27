@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+# Verifica si se proporcionó una palabra
+if [ -z "$1" ]; then
+    echo "Uso: ./script palabra"
+    exit 1
+fi
+
+# Define el archivo a buscar
+archivo="$HOME/.ssh/config"
+
+# Realiza la búsqueda y muestra las 3 líneas siguientes de cada coincidencia
+grep -A 3 "$1" "$archivo"
+
+#hola

@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+shopt -s nullglob nocaseglob
+
+if [[ -n "$1" && -d "$1" ]]; then
+  imgs=("$1"/*.{heic,jpg,jpeg,png})
+elif [[ -n "$1" ]]; then
+  imgs=("$1")
+else
+  imgs=(*.heic *.jpg *.jpeg *.png)
+fi
+
+for img in "${imgs[@]}"; do
+  [[ ! -r "$img" || ! -f "$img" ]] && continue
+
+  ext="${img##*.}"
+  ext="$(echo "$ext" | tr '[:upper:]' '[:lower:]')"
+  base="${img%.*}"
+  out="${base}.webp"
+
+  [[ -f "$out" ]] && continue
+
+  if [[ "$ext" == "heic" ]]; then
+    tmp="${base}_tmp.jpg"
+    magick "$img" "$tmp" && cwebp -q 80 "$tmp" -o "$out" && rm "$tmp"
+  else
+    cwebp -q 80 "$img" -o "$out"
+  fi
+done

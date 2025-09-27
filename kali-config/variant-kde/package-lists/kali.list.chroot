@@ -1,0 +1,17 @@
+kali-linux-core
+kali-desktop-live
+kali-desktop-kde
+kali-linux-default
+zsh
+git
+curl
+wget
+kitty
+fzf
+zoxide
+bat
+lsd
+ripgrep
+fd-find
+fonts-powerline
+fonts-jetbrains-mono

@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+# Intenta cargar el nombre del servidor desde la variable, si no, pedirlo
+if [ -z "$host_nombre" ]; then
+    read -p "Ingrese el nombre del servidor: " server_name
+else
+    server_name=$host_nombre
+fi
+
+# Copia el script wm-exit a /usr/bin
+sudo mv /opt/4rji/bin/wm-exit /usr/bin/wm-exit
+
+# Modifica el script wm-exit para actualizar la variable con el nombre del servidor
+# Asegúrate de que el uso de sed coincida exactamente con cómo está formateado en el script original
+sudo sed -i "s/echo \"nserver\" | figlet/echo \"$server_name\" | figlet/" /usr/bin/wm-exit
+
+# Agrega wm-exit al archivo zlogout para Zsh
+echo "/usr/bin/wm-exit" >> ~/.zlogout
+
+echo "Configuración de salida SSH completada."

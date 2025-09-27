@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+# Start the SMB server
+echo "sudo impacket-smbserver smbFolder $(pwd) -smb2support &"
+echo "sudo python3 /usr/share/doc/python3-impacket/examples/smbserver.py -smb2support SHARE Screenshots"
+
+# Wait for a moment to ensure the server starts
+
+
+# Instructions with ANSI color codes
+echo -e "\033[31m"
+echo ""
+echo "_________________________________________________________"
+echo ""
+echo "Instructions for downloading the file:"
+echo ""
+echo -e "\033[32m"
+echo "From Linux:"
+echo -e "\033[34m"
+echo "1. Install smbclient if you don't have it already:"
+echo -e "\033[33m"
+echo "   sudo apt-get install smbclient"
+
+echo -e "\033[34m"
+echo "2. Access the shared folder:"
+echo -e "\033[33m"
+echo "   smbclient //$(hostname -I | awk '{print $1}')/smbFolder"
+echo " (not password just press enter)"
+echo -e "\033[34m"
+echo "3. Download the file:"
+echo -e "\033[33m"
+echo "   get <filename>"
+echo ""
+echo -e "\033[31m"
+echo "From Windows:"
+echo -e "\033[32m"
+echo "1. Press Win + R to open the Run dialog."
+echo -e "\033[34m"
+echo "2. Type '\\\\$(hostname -I | awk '{print $1}')\\smbFolder' and press Enter."
+echo -e "\033[33m"
+echo "3. Copy the file from the shared folder or try copy \\$ip\smbFolder\file namenewfile"
+echo ""
+echo "_________________________________________________________"
+echo ""
+echo -e "\033[31m"

@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+# Instala y configura Suricata con interfaz en modo promiscuo (auto/override)
+# Uso opcional: IFACE=eth1 ./setup-suricata.sh  (o ./setup-suricata.sh eth1)
+
+set -euo pipefail
+
+# ===== Colores ANSI =====
+G="\e[92m"; Y="\e[93m"; B="\e[94m"; R="\e[91m"; X="\e[0m"
+
+echo -e "\n${B}──────────────────────────────────────────────────────────────${X}"
+echo -e "${B}                 INSTALACIÓN • SURICATA (APT)                 ${X}"
+echo -e "${B}──────────────────────────────────────────────────────────────${X}\n"
+
+# ===== Descubrir interfaz =====
+ARG_IFACE="${1:-}"
+ENV_IFACE="${IFACE:-}"
+choose_iface() {
+  if [[ -n "$ARG_IFACE" ]]; then echo "$ARG_IFACE"; return; fi
+  if [[ -n "$ENV_IFACE" ]]; then echo "$ENV_IFACE"; return; fi
+  DEF=$(ip route show default 2>/dev/null | awk '/default/ {for(i=1;i<=NF;i++) if($i=="dev"){print $(i+1); exit}}')
+  if [[ -n "${DEF:-}" ]]; then echo "$DEF"; return; fi
+  ip -o link show up | awk -F': ' '{print $2}' \
+    | grep -Eiv '^(lo|docker.*|br-.*|veth.*|wg.*|tun.*|tap.*|virbr.*|vmnet.*|tailscale.*)$' \
+    | head -n1
+}
+IFACE="$(choose_iface || true)"
+if [[ -z "${IFACE:-}" ]]; then
+  echo -e "${R}✖ No se pudo detectar interfaz. Pasa una: ${Y}./setup-suricata.sh eth1${X}\n"
+  exit 1
+fi
+
+echo -e "${G}✔ Interfaz detectada:${X} ${Y}${IFACE}${X}\n"
+
+# ===== APT =====
+echo -e "${G}→${X} ${Y}sudo apt update${X}\n"
+sudo apt update -y
+
+echo -e "${G}→${X} ${Y}sudo apt install suricata -y${X}\n"
+sudo apt install -y suricata
+
+# ===== Reglas =====
+echo -e "${G}→${X} ${Y}sudo suricata-update${X}\n"
+sudo suricata-update
+
+# ===== Config: /etc/default/suricata =====
+echo -e "${G}→${X} ${Y}Configurando /etc/default/suricata${X}\n"
+sudo install -m 0644 /dev/null /etc/default/suricata || true
+sudo tee /etc/default/suricata >/dev/null <<EOF
+# Autogenerado: interfaz y opciones de Suricata
+LISTENMODE=af-packet
+IFACE="${IFACE}"
+SURICATA_OPTIONS="-i \${IFACE}"
+EOF
+# ===== Modo promiscuo (sesión actual) =====
+echo -e "${G}→${X} ${Y}Activando modo promiscuo en ${IFACE}${X}\n"
+sudo ip link set "${IFACE}" promisc on
+
+# ===== Probar sintaxis =====
+echo -e "${G}→${X} ${Y}Validando configuración${X}\n"
+sudo suricata -T -c /etc/suricata/suricata.yaml >/dev/null
+
+# ===== Habilitar servicio =====
+echo -e "${G}→${X} ${Y}sudo systemctl enable --now suricata${X}\n"
+sudo systemctl enable --now suricata
+
+# ===== Estado rápido =====
+echo -e "${G}→${X} ${Y}systemctl --no-pager --full -l status suricata | sed -n '1,15p'${X}\n"
+sudo systemctl --no-pager --full -l status suricata | sed -n '1,15p' || true
+
+# ===== Mensajes finales =====
+echo
+echo -e "${B}──────────────────────────────────────────────────────────────${X}"
+echo -e "${G}✅ Suricata instalado y corriendo en interfaz:${X} ${Y}${IFACE}${X}\n"
+echo -e "${G}📄 Config principal:${X} ${Y}/etc/suricata/suricata.yaml${X}"
+echo -e "${G}⚙  Servicio:${X} ${Y}sudo systemctl [status|restart] suricata${X}"
+echo -e "${G}🧪 Reglas:${X} ${Y}sudo suricata-update${X}"
+echo -e "${G}🔎 Logs (rápido):${X} ${Y}sudo tail -f /var/log/suricata/fast.log${X}\n"
+
+echo -e "${Y}⚠ IMPORTANTE:${X}"
+echo -e "  Suricata NO cambia automáticamente la interfaz en el archivo YAML."
+echo -e "  Abre ${Y}/etc/suricata/suricata.yaml${X} y busca esta sección:\n"
+echo -e "    af-packet:"
+echo -e "      - interface: eth0\n"
+echo -e "  Debes reemplazar 'eth0' por tu interfaz real → ${G}${IFACE}${X}\n"
+echo -e "  Ejecuta:\n"
+echo -e "    ${Y}sudo nano /etc/suricata/suricata.yaml${X}"
+echo -e "    ${Y}sudo suricata -T -c /etc/suricata/suricata.yaml${X}"
+echo -e "    ${Y}sudo systemctl restart suricata${X}\n"
+
+echo -e "${B}──────────────────────────────────────────────────────────────${X}\n"

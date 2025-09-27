@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+# Función para imprimir una línea decorativa
+print_separator() {
+    echo ""
+    echo -e "\e[96m\e[1m_________________________________________________________\e[0m"
+    echo ""
+}
+
+# Función para solicitar al usuario un valor con un color específico
+prompt_with_color() {
+    echo -e "\e["$1"m\e[1m$2\e[0m"
+}
+
+# Solicitar al usuario los detalles del host
+print_separator
+echo -e "\e[93m\e[1mIngrese los detalles del host:\e[0m"
+prompt_with_color "92" "Nombre del host: "
+read host_name
+prompt_with_color "91" "Hostname o direccion IP del host: "
+read host_address
+prompt_with_color "94" "Nombre de usuario SSH: "
+read user_name
+prompt_with_color "94" "Puerto SSH del host (opcional, dejar vacío para el valor predeterminado 22): "
+read host_port
+
+# Crear la cadena de configuración del host
+config_line="Host $host_name\n\tHostname $host_address"
+# Agregar el nombre de usuario SSH al host si se proporciona
+if [ -n "$user_name" ]; then
+    config_line="$config_line\n\tUser $user_name"
+fi
+# Agregar el puerto SSH al host si se proporciona
+if [ -n "$host_port" ]; then
+    config_line="$config_line\n\tPort $host_port"
+fi
+
+# Agregar la cadena de configuración al archivo ~/.ssh/config
+echo -e "$config_line" >> ~/.ssh/config
+
+# Mostrar el contenido del archivo creado
+print_separator
+echo -e "\e[93m\e[1mContenido del archivo ~/.ssh/config:\e[0m"
+cat ~/.ssh/config
+print_separator
+
+
+#Para Jump usando XPS dell
+#Host deb
+#        Hostname 192.168.122.162
+#        User ass
+#        ProxyJump xps  

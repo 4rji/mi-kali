@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+
+# Colors
+rojo='\e[0;31m'
+verde='\e[0;32m'
+azul='\e[0;34m'
+cyan='\e[0;36m'
+reset='\e[0m'
+
+echo -e "${azul}"
+echo "_________________________________________________________"
+echo ""
+echo -e "${verde}Installing libpam-google-authenticator...${reset}"
+sudo apt-get install libpam-google-authenticator  > /dev/null
+
+echo ""
+echo -e "${azul}_________________________________________________________${reset}"
+echo ""
+echo -e "${verde}Editing the SSH PAM file (/etc/pam.d/sshd) to add Google Authenticator support...${reset}"
+echo ""
+echo -e "${cyan}auth required pam_google_authenticator.so${reset}"
+echo ""
+read -n1 -s -p "$(echo -e ${verde}'Edit SSH PAM? [y/n] '${reset})" respuesta
+echo ""
+if [[ "$respuesta" =~ ^[Yy]$ ]]; then
+    sudo sed -i '$a\auth required pam_google_authenticator.so' /etc/pam.d/sshd
+    echo -e "${verde}ok,${reset}"
+else
+    echo -e "${rojo}No action has been taken on the SSH PAM file.${reset}"
+fi
+
+echo ""
+echo -e "${azul}_________________________________________________________${reset}"
+echo ""
+echo -e "${verde}Modifying SSH configuration in /etc/ssh/sshd_config...${reset}"
+echo ""
+echo -e "${cyan}ChallengeResponseAuthentication yes${reset}"
+echo -e "${cyan}AuthenticationMethods publickey,password publickey,keyboard-interactive${reset}"
+echo ""
+read -n1 -s -p "$(echo -e ${verde}'Edit SSH configuration? [y/n] '${reset})" respuesta
+echo ""
+if [[ "$respuesta" =~ ^[Yy]$ ]]; then
+    # Comment out 'KbdInteractiveAuthentication no' if it exists
+    sudo sed -i 's/^KbdInteractiveAuthentication no/#&/' /etc/ssh/sshd_config
+
+    echo "KbdInteractiveAuthentication yes" | sudo tee -a /etc/ssh/sshd_config > /dev/null
+    echo "ChallengeResponseAuthentication yes" | sudo tee -a /etc/ssh/sshd_config > /dev/null
+    echo "AuthenticationMethods publickey,password publickey,keyboard-interactive" | sudo tee -a /etc/ssh/sshd_config > /dev/null
+    echo -e "${verde}ok.${reset}"
+
+    echo ""
+    echo -e "${verde}Restarting SSH service...${reset}"
+    sudo systemctl restart sshd
+else
+    echo -e "${rojo}No action has been taken on the SSH configuration file.${reset}"
+fi
+
+echo ""
+echo -e "${azul}_________________________________________________________${reset}"
+echo ""
+read -n1 -s -p "$(echo -e ${verde}'Do you want to configure Google Authenticator codes? [y/n] '${reset})" respuesta
+echo ""
+if [[ "$respuesta" =~ ^[Yy]$ ]]; then
+    google-authenticator
+else
+    echo -e "${rojo}Google Authenticator codes will not be configured.${reset}"
+fi
+
+echo ""
+echo -e "${verde}Restarting SSH service...${reset}"
+sudo systemctl restart sshd
+
+echo ""
+echo -e "${azul}Process completed.${reset}"

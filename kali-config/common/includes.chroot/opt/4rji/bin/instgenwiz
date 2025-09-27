@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+unzip $HOME/4rji/Narthex-master.zip
+cd Narthex-master
+sudo make install
+
+echo "To start TYPE nwiz"

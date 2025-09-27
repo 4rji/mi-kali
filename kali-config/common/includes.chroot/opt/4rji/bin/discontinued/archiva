@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+if [ -z "$1" ]; then
+    echo -e "\e[1;33mError: Debes proporcionar una URL como argumento.\e[0m"
+    exit 1
+fi
+
+url="$1"
+
+# Movemos al directorio de archivebox
+
+
+cd ~/archivebox || { echo -e "\e[1;33mError: No se pudo acceder al directorio de ArchiveBox.\e[0m"; exit 1; }
+
+# Creamos una nueva sesión de tmux llamada "archiva" y ejecutamos el comando correspondiente
+tmux new-session -d -s archiva "docker-compose run archivebox add --depth=0 $url"
+tmux attach-session -t archiva 
+
+echo -e "\e[0;32mSe ha iniciado una nueva sesión de tmux llamada 'archiva' para guardar la pagina '$url'.\e[0m"
+
+echo ""
+echo "regresar:"
+echo "tmux attach-session -t archiva "
+
+https://attack.mitre.org/

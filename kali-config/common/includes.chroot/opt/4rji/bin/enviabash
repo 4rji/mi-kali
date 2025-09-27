@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+if [ $# -ne 2 ]; then
+    echo -e "\e[31m[!] Uso: $0 <Puerto> <Archivo_a_enviar>\e[0m"
+    exit 1
+fi
+
+PUERTO="$1"
+ARCHIVO="$2"
+
+echo
+echo -e "\e[33m[*] Ejecutando:\e[0m"
+echo "cat $ARCHIVO | nc -lvp $PUERTO"
+echo
+
+# Servir el archivo
+cat "$ARCHIVO" | nc -lvp "$PUERTO"
+
+echo
+echo -e "\e[32m[+] Archivo '$ARCHIVO' enviado correctamente (o conexión cerrada)\e[0m"
+echo
+echo -e "\e[34m[*] SHA256SUM del archivo enviado:\e[0m"
+sha256sum "$ARCHIVO"
+echo

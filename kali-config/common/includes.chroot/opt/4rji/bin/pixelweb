@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+# Asegurar que el archivo de lista de IPs existe
+touch ~/ip_list.txt
+
+# Comenzar a monitorear el archivo de registro
+stdbuf -oL  sudo tail -F /var/log/image_access.log | while read line; do
+    # Extraer la dirección IP usando una expresión regular
+    ip=$(echo "$line" | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}')
+
+    if [ ! -z "$ip" ]; then
+        # Verificar si la IP ya está en la lista
+        if ! grep -Fxq "$ip" ~/ip_list.txt; then
+            # Agregar la nueva IP a la lista
+            echo "$ip" >> ~/ip_list.txt
+            echo "Nueva IP agregada: $ip"
+        fi
+    fi
+done

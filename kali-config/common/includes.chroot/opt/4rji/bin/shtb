@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+# Definir las ubicaciones de las carpetas en el servidor y en tu máquina local
+carpeta_servidor="/home/ass/Documents/GitHub/4rji/4rjinotes/htb"
+carpeta_local="/Users/ozono/Dropbox/archivos-b/4rjinotes/htb"
+
+# Sincronizar las carpetas utilizando rsync
+rsync -avz htb:$carpeta_servidor/ $carpeta_local
+
+echo "¡Sincronización completada!"

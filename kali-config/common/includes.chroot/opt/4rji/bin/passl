@@ -1,0 +1,135 @@
+#!/usr/bin/env bash
+
+while true; do
+    echo ""
+    echo -e "\033[1;36m_________________________________________________________\033[0m"
+    echo ""
+    echo -e "\033[1;32mChoose a command to execute:\033[0m"
+    echo -e "\033[1;35m==============================================\033[0m"
+    echo ""
+    echo -e "\033[1;33m1. Users with interactive shell grep -v '/usr/sbin/nologin'\033[0m"
+    echo -e "\033[1;34m2. Users with interactive shell cat /etc/passwd\033[0m"
+    echo -e "\033[1;32m3. Show content of /etc/passwd with 'bash'\033[0m"
+    echo -e "\033[1;33m4. Change a user's shell to /usr/sbin/nologin\033[0m"
+    echo -e "\033[1;36m5. System accounts (less than uid 1000)\033[0m"
+    echo -e "\033[1;35m6. System accounts (more than uid 1000)\033[0m"
+    echo -e "\033[1;34m7. See getcap\033[0m"
+    echo -e "\033[1;31m8. Exit and display commands\033[0m"
+    echo ""
+
+
+    # Wait for user input (just one character)
+    read -n1 -s input
+    echo ""
+    echo ""
+
+    case $input in
+        1)
+            echo ""
+            echo "***********************************************"
+            echo "more lines: awk /etc/pass/ /usr/sbin/nologin"
+            echo "***********************************************"
+            echo ""
+            awk -F':' '
+            {
+                if ($7 != "/usr/sbin/nologin")
+                    print $1 " : m" $7 ""
+            }' /etc/passwd | less
+            echo ""
+            echo "***********************************************"
+            echo ""
+            echo ""
+            ;;
+        2)
+            echo ""
+            echo "***********************************************"
+            echo "grep -v '/usr/sbin/nologin' /etc/passwd"
+            echo "***********************************************"
+            echo ""
+
+            grep -v 'nologin' /etc/passwd | less
+
+            echo ""
+            echo ""
+            echo "***********************************************"
+            echo ""
+            echo ""
+            
+  
+            ;;
+        3)
+            echo ""
+             echo "***********************************************"
+            echo "grep -v '/usr/sbin/nologin' /etc/passwd" 
+            echo "***********************************************"
+            echo "" 
+            cat /etc/passwd | grep bash --color | less
+            echo ""
+            echo ""
+            echo "***********************************************"
+            echo ""
+
+            ;;
+        4)
+            echo ""
+            echo "Enter the username to change to nologin:"
+            read username
+            echo ""
+            sudo usermod -s /usr/sbin/nologin $username 
+            echo ""
+            
+            echo ""
+            echo "***********************************************"
+            echo ""
+            ;;
+        5)
+            echo ""
+
+
+            echo ""
+            awk -F: '$3 < 1000 {print $1, $3}' /etc/passwd | less
+
+            echo ""
+            echo "***********************************************"
+            echo ""
+            ;;
+        6)
+            echo ""
+
+
+            echo ""
+            awk -F: '($3 >= 1000) {print $1}' /etc/passwd | less
+
+            echo ""
+            echo "***********************************************"
+            echo ""
+            echo ""
+            ;;
+        7)
+            echo ""
+            echo ""
+            getcap -r / 2>/dev/null
+
+            echo ""
+            echo "Look for:  ** cap_setuid=ep **"
+            echo "***********************************************"
+            echo ""
+            ;;
+
+
+        8)
+            echo ""
+            echo "Exiting..."
+            echo ""
+            echo "cat /etc/passwd"
+            echo ""
+            echo "Command to change a user's shell to nologin: "
+            echo "sudo usermod -s /usr/sbin/nologin user_name"
+            echo ""
+            break
+            ;;
+        *)
+            echo "Invalid option."
+            ;;
+    esac
+done

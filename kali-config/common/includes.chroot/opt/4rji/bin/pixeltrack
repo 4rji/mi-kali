@@ -1,0 +1,124 @@
+#!/usr/bin/env python3
+import subprocess
+import sys
+import os
+
+def run_command(command, check=True, shell=True, input=None):
+    """Execute a system command securely."""
+    try:
+        result = subprocess.run(command, check=check, shell=shell, input=input, text=True)
+        return result
+    except subprocess.CalledProcessError as e:
+        print(f"Error executing command: {command}")
+        print(e)
+        sys.exit(1)
+
+def install_packages():
+    print("Updating package list...")
+    run_command('apt update')
+
+    print("Installing necessary packages...")
+    packages = ['apache2', 'php', 'libapache2-mod-php', 'wget']
+    run_command(f"apt install -y {' '.join(packages)}")
+
+    print("Enabling Apache rewrite module...")
+    run_command('a2enmod rewrite')
+
+def setup_php_script():
+    print("Configuring save_ip.php...")
+    php_content = """<?php
+// File to store data
+$logFile = "/var/log/image_access.log";
+
+// Get the visitor's IP address
+$ip = $_SERVER["REMOTE_ADDR"];
+
+// Get the current date and time
+$dateTime = date("Y-m-d H:i:s");
+
+// Write information to the log file
+file_put_contents($logFile, "IP: " . $ip . " - Date/Time: " . $dateTime . "\\n", FILE_APPEND);
+
+// Set the content type to PNG image
+header("Content-Type: image/png");
+
+// Deliver the actual image to the client
+readfile("/var/www/html/sss.png");
+?>"""
+    # Use 'tee' to write content to the PHP file
+    run_command('tee /var/www/html/save_ip.php', input=php_content)
+
+    print("Adjusting permissions for save_ip.php...")
+    run_command('chown www-data:www-data /var/www/html/save_ip.php')
+    run_command('chmod 644 /var/www/html/save_ip.php')
+
+def setup_htaccess():
+    print("Configuring .htaccess...")
+    htaccess_content = """RewriteEngine On
+# Redirect requests for sss.png to the PHP script
+RewriteRule ^sss\\.png$ /save_ip.php [L]"""
+    run_command('tee /var/www/html/.htaccess', input=htaccess_content)
+
+    print("Adjusting permissions for .htaccess...")
+    run_command('chmod 644 /var/www/html/.htaccess')
+
+def setup_logs_and_permissions():
+    print("Setting up logs and permissions...")
+    run_command('touch /var/log/image_access.log')
+    run_command('chown www-data:www-data /var/log/image_access.log')
+    run_command('chmod 640 /var/log/image_access.log')
+
+def download_and_setup_image():
+    print("Downloading and setting up image...")
+    image_url = "https://github.com/4rji/archivos-b/raw/c5cbc289fd6a8a9e5be86f11c62308ea17bea62d/pixel_blanco_invisible.png"
+    image_path = '/var/www/html/sss.png'
+    run_command(f'wget {image_url} -O {image_path}')
+
+    print(f'Image downloaded successfully: {image_path}')
+    print("Verifying current permissions of the image...")
+    run_command(f'ls -l {image_path}')
+
+    print("Adjusting ownership and permissions of the image...")
+    run_command(f'chown www-data:www-data {image_path}')
+    run_command(f'chmod 644 {image_path}')
+
+    print("Verifying permissions after changes...")
+    run_command(f'ls -l {image_path}')
+
+def update_apache_config():
+    print("Updating Apache configuration...")
+    config_file = '/etc/apache2/sites-available/000-default.conf'
+    # Insert 'DirectoryIndex sss.png' after 'DocumentRoot /var/www/html'
+    run_command(f"sed -i '/DocumentRoot \\/var\\/www\\/html/a \\    DirectoryIndex sss.png' {config_file}")
+
+def restart_apache():
+    print("Restarting Apache...")
+    run_command('systemctl restart apache2')
+
+def main():
+    # Check if the script is running as root
+    if os.geteuid() != 0:
+        print("This script requires administrator privileges. Attempting to re-run with sudo...")
+        try:
+            subprocess.check_call(['sudo', sys.executable] + sys.argv)
+            sys.exit(0)
+        except subprocess.CalledProcessError as e:
+            print("Failed to obtain administrator privileges.")
+            sys.exit(1)
+
+    install_packages()
+    setup_php_script()
+    setup_htaccess()
+    setup_logs_and_permissions()
+    download_and_setup_image()
+    update_apache_config()
+    restart_apache()
+    print("")
+    print("Installation and configuration completed successfully.")
+    print("------------------------------------------------------------")
+    print("")
+    print("To monitor access logs, run: ")
+    print("sudo tail -f /var/log/image_access.log")
+
+if __name__ == "__main__":
+    main()

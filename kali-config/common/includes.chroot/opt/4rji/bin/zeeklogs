@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Menú interactivo para visualizar logs de Zeek en /opt/zeek/spool/zeek
+
+LOGDIR="/opt/zeek/spool/zeek"
+
+# Verifica existencia
+if ! sudo test -d "$LOGDIR"; then
+    echo -e "\e[91m❌ No existe $LOGDIR\e[0m"
+    exit 1
+fi
+
+while true; do
+    echo -e "\n\e[96m=== Archivos disponibles en $LOGDIR ===\e[0m"
+    mapfile -t files < <(sudo ls -1 "$LOGDIR")
+    files+=("Salir")
+
+    select file in "${files[@]}"; do
+        if [[ "$file" == "Salir" ]]; then
+            echo -e "\e[93m👋 Saliendo...\e[0m"
+            exit 0
+        elif [[ -n "$file" ]]; then
+            echo -e "\n\e[92m▶ Mostrando: $LOGDIR/$file\e[0m"
+            echo -e "\e[95m(Usa q para salir y volver al menú)\e[0m\n"
+            sudo less -RS "$LOGDIR/$file"
+            break
+        else
+            echo -e "\e[91mOpción inválida\e[0m"
+        fi
+    done
+done

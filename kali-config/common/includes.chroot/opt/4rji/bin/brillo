@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+
+
+# Verifica si se pasó un argumento
+if [ -z "$1" ]; then
+    echo "Uso: brillo <numero>"
+    echo "Ejemplo: brillo 0 (apagado)"
+    echo "Ejemplo: brillo 400 (Encendido)"
+    exit 1
+fi
+
+# Ejecuta el comando con el valor proporcionado
+CMD="echo $1 | sudo tee /sys/class/backlight/*/brightness"
+echo ""
+echo "$CMD"
+eval $CMD

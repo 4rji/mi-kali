@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# Simple: muestra el comando, su salida y ejemplos de orden
+
+cmd='networksetup -listallnetworkservices'
+echo "Comando ejecutado: $cmd"
+
+services=()
+while IFS= read -r line; do
+  services+=("$line")
+done < <($cmd | tail -n +2 | sed '/^\*/d')
+
+echo
+echo "Servicios de red:"
+printf '  %s\n' "${services[@]}"
+
+echo
+echo "Ejemplo Wi-Fi primero:"
+printf 'sudo networksetup -ordernetworkservices "%s"' "Wi-Fi"
+for s in "${services[@]}"; do
+  [[ $s == "Wi-Fi" ]] && continue
+  printf ' "%s"' "$s"
+done
+echo
+
+echo
+echo "Ejemplo Ethernet primero:"
+eth="Ethernet"
+printf 'sudo networksetup -ordernetworkservices "%s"' "$eth"
+for s in "${services[@]}"; do
+  [[ $s == "$eth" ]] && continue
+  printf ' "%s"' "$s"
+done
+echo

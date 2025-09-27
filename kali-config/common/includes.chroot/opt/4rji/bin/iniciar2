@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+# Verificar si la variable maquina está definida en el entorno
+if [ -z "$maquina" ]; then
+  echo "Error: La variable 'maquina' no está definida en el entorno."
+  exit 1
+fi
+
+iniciar() {
+  local base_dir="$HOME/Documents/GitHub/4rji/4rjinotes/htb"
+  local new_dir="$base_dir/$maquina"
+  local template_file="$home/.template.md"
+  local machine_name="$maquina"
+  local new_file="$new_dir/$machine_name.md"
+
+  # Crear directorio y copiar plantilla
+  mkdir -p "$new_dir" && cd "$new_dir" && mkdir -p nmap content exploits scripts && cp "$template_file" "$machine_name.md"
+
+  # Abrir primera ventana de Kitty en el directorio raíz
+  kitty @ launch zsh -c "cd \"$new_dir\"; exec zsh"
+
+  # Abrir segunda ventana de Kitty en el directorio nmap
+  kitty @ launch zsh -c "cd \"$new_dir/nmap\"; exec zsh"
+
+  # Abrir tercera ventana de Kitty en el directorio content
+  kitty @ launch zsh -c "cd \"$new_dir/content\"; exec zsh"
+
+  # Mostrar mensaje final
+  echo ""
+  pwd
+}
+
+# Llamar a la función iniciar
+iniciar

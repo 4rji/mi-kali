@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+
+echo "https://github.com/esjeon/krohnkite"
+
+echo ""
+
+echo "Instalar en Window Manager- KWin scripts - Get New Script"
+echo "look for krohkite"
+
+echo ""
+mkdir -p ~/.local/share/kservices5/
+ln -s ~/.local/share/kwin/scripts/krohnkite/metadata.desktop ~/.local/share/kservices5/krohnkite.desktop
+
+echo "Este script instala el boton de configuracion, ya debera estar instalado al agregar el script "
+
+
+
+#Kröhnkite es una extensión de organización dinámica de ventanas para KWin, el gestor de ventanas de KDE. Está inspirado en dwm de suckless
+# y se integra completamente en KWin, permitiendo gestionar ventanas de forma dinámica, con soporte para múltiples pantallas y escritorios 
+# virtuales. Ofrece varios diseños de ventanas, como mosaico y monocle, y se puede instalar usando un archivo kwinscript o directamente desde
+#  el repositorio Git. Además, permite configuraciones de usuario y tiene atajos de teclado predefinidos para facilitar la gestión de ventanas.
+#   Para más detalles, puedes visitar el proyecto en GitHub: [Kröhnkite en GitHub](https://github.com/esjeon/krohnkite).

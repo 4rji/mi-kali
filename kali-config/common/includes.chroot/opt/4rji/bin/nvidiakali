@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+# Actualizar el sistema
+sudo apt update
+sudo apt dist-upgrade -y
+
+# Variables para el controlador de NVIDIA
+DRIVER_URL="https://uk.download.nvidia.com/XFree86/Linux-x86_64/555.42.02/NVIDIA-Linux-x86_64-555.42.02.run"
+DRIVER_FILE="NVIDIA-Linux-x86_64-555.42.02.run"
+
+# Verificar si el archivo del controlador ya existe
+if [ -f "$DRIVER_FILE" ]; then
+    echo "El archivo $DRIVER_FILE ya existe. Se omite la descarga."
+else
+    echo "Descargando el controlador de NVIDIA..."
+    wget "$DRIVER_URL" -O "$DRIVER_FILE"
+    
+    # Verificar si la descarga fue exitosa
+    if [ $? -ne 0 ]; then
+        echo "Error al descargar el controlador de NVIDIA."
+        exit 1
+    fi
+fi
+
+# Asegurarse de que el script sea ejecutable
+chmod +x "$DRIVER_FILE"
+
+# Deshabilitar el módulo nouveau
+echo "Deshabilitando el módulo nouveau..."
+echo "blacklist nouveau" | sudo tee /etc/modprobe.d/blacklist-nouveau.conf > /dev/null
+echo "options nouveau modeset=0" | sudo tee -a /etc/modprobe.d/blacklist-nouveau.conf > /dev/null
+
+# Instalar herramientas de desarrollo y encabezados del kernel actual
+echo "Instalando herramientas de desarrollo y encabezados del kernel..."
+sudo apt-get install -y build-essential linux-headers-$(uname -r)
+
+# Actualizar initramfs
+echo "Actualizando initramfs..."
+sudo update-initramfs -u
+
+# Mensaje final
+echo "La configuración se ha completado. Por favor, reinicia la máquina para aplicar los cambios."

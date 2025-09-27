@@ -194,6 +194,11 @@ f binary/md5sum.txt
 d binary/boot
 d binary/boot/grub
 f binary/boot/grub/install_start.cfg
+d binary/boot/grub/theme
+f binary/boot/grub/theme/select_e.png
+f binary/boot/grub/theme/select_w.png
+f binary/boot/grub/theme/select_c.png
+f binary/boot/grub/theme/theme.txt
 f binary/boot/grub/memtest.cfg
 f binary/boot/grub/loopback.cfg
 f binary/boot/grub/config.cfg
@@ -203,6 +208,7 @@ f binary/boot/grub/efi.img
 f binary/boot/grub/theme.cfg
 f binary/boot/grub/install.cfg
 f binary/boot/grub/grub.cfg
+f binary/boot/grub/splash.png
 d binary/dists
 d binary/dists/kali-rolling
 d binary/dists/kali-rolling/non-free

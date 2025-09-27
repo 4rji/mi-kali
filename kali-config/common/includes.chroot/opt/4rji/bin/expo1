@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+
+echo ""
+echo -e "\e[34m_________________________________________________________\e[0m"
+echo ""
+
+# Function to display help message and ask if the user wants to continue
+show_help_and_confirm() {
+    echo -e "\e[32mThe command this script executes is:\e[0m"
+    echo ""
+    echo -e "\e[33m1) - sudo nmap 10.10.10.3 -p- --open -sS --min-rate 5000 -v -n -oG allPorts\e[0m"
+    echo -e "\e[35m2) - sudo nmap 10.10.10.3 -p- --open -sS --min-rate 5000 -v -n -Pn -oG allPorts\e[0m"
+    echo ""
+    read -n1 -p $'\e[36mPress Enter to continue or "c" to exit.\e[0m ' response
+
+    echo "" # Add space after input
+    echo -e "\e[34m_________________________________________________________\e[0m"
+    echo ""
+
+    # Convert response to lowercase and check if 'c' was pressed
+    response=$(echo "$response" | tr '[:upper:]' '[:lower:]')
+    if [ "$response" == "c" ]; then
+        echo -e "\e[31mExiting the script.\e[0m"
+        exit 0
+    fi
+}
+
+# Check if -h argument is passed
+if [ "$1" == "-h" ]; then
+    show_help_and_confirm
+fi
+
+# Check if IP was passed as an argument
+if [ -z "$1" ]; then
+    echo -e "\e[31mYou must specify the IP as a script argument.\e[0m"
+    exit 1
+fi
+
+echo ""
+echo -e "\e[32mSelect the type of scan you want to use:\e[0m"
+echo ""
+echo -e "\e[33m1. Run scan without Pn\e[0m"
+echo -e "\e[35m2. Run scan with Pn\e[0m"
+echo ""
+echo -e "\e[34m_________________________________________________________\e[0m"
+echo "" # Add space after input
+
+echo -e "\e[32mThe command to execute is:\e[0m"
+echo -e "\e[33msudo nmap "$1" -p- --open -sS --min-rate 5000 -v -n -oG allPorts\e[0m"
+
+echo "" # Add space after input
+echo -e "\e[34m_________________________________________________________\e[0m"
+echo ""
+read -n1 -p $'\e[36mChoose (1 or 2):\e[0m ' choice
+
+echo ""
+
+case $choice in
+    1)
+        echo -e "\e[32mRunning scan without Pn...\e[0m"
+        sudo nmap "$1" -p- --open -sS --min-rate 5000 -v -n -oG allPorts
+        ;;
+    2)
+        echo -e "\e[33mRunning scan with Pn...\e[0m"
+        sudo nmap "$1" -p- --open -sS --min-rate 5000 -v -n -Pn -oG allPorts
+        ;;
+    *)
+        echo -e "\e[31mInvalid option. Please choose 1 or 2.\e[0m"
+        ;;
+esac

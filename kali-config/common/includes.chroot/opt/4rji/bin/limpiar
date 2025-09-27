@@ -1,0 +1,123 @@
+#!/usr/bin/env bash
+
+# List of packages to install
+packages=("scrub" "coreutils")
+
+# Function to check if a package is installed (Debian/Ubuntu/Kali)
+package_installed_apt() {
+    dpkg -l "$1" | grep -q '^ii'  
+}
+
+# Function to check if a package is installed (CentOS/RHEL)
+package_installed_yum() {
+    yum list installed "$1" &> /dev/null
+}
+
+# Function to check if a package is installed (Fedora)
+package_installed_dnf() {
+    dnf list installed "$1" &> /dev/null
+}
+
+# Function to check if a package is installed (Arch Linux)
+package_installed_pacman() {
+    pacman -Qi "$1" &> /dev/null
+}
+
+# Detect the operating system
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS=$ID
+fi
+
+# Install packages based on the operating system
+for package in "${packages[@]}"; do
+    case $OS in
+        "debian"|"ubuntu"|"kali")
+            if ! package_installed_apt "$package"; then
+                echo ""
+                echo "_________________________________________________________"
+                echo ""
+                echo -e "\033[31mInstalling package $package...\033[0m"
+                echo -e "\033[34msudo apt-get install -y $package\033[0m"
+                sudo apt-get install -y "$package"
+            fi
+            ;;
+        "centos"|"rhel")
+            if ! package_installed_yum "$package"; then
+                echo ""
+                echo "_________________________________________________________"
+                echo ""
+                echo -e "\033[32mInstalling package $package...\033[0m"
+                echo -e "\033[34msudo yum install -y $package\033[0m"
+                sudo yum install -y "$package"
+            fi
+            ;;
+        "fedora")
+            if ! package_installed_dnf "$package"; then
+                echo ""
+                echo "_________________________________________________________"
+                echo ""
+                echo -e "\033[33mInstalling package $package...\033[0m"
+                echo -e "\033[34msudo dnf install -y $package\033[0m"
+                sudo dnf install -y "$package"
+            fi
+            ;;
+        "arch")
+            if ! package_installed_pacman "$package"; then
+                echo ""
+                echo "_________________________________________________________"
+                echo ""
+                echo -e "\033[36mInstalling package $package...\033[0m"
+                echo -e "\033[34msudo pacman -S --noconfirm $package\033[0m"
+                sudo pacman -S --noconfirm "$package"
+            fi
+            ;;
+        *)
+            ;;
+    esac
+done
+
+# Function to securely clean files
+clean_files() {
+    echo ""
+    echo "_________________________________________________________"
+    echo ""
+    echo -e "\033[35mCleaning started in directory $1...\033[0m"
+    
+    # Show the command to be executed
+    echo -e "\033[34mCommand to execute: find $1 -type f -exec scrub -p dod {} +\033[0m"
+    find "$1" -type f -exec scrub -p dod {} +
+
+    echo -e "\033[34mCommand to execute: find $1 -type f -exec shred -zun 10 -v {} +\033[0m"
+    find "$1" -type f -exec shred -zun 10 -v {} +
+    
+    echo -e "\033[32mCleaning completed.\033[0m"
+}
+
+# Ask user if they want to clean the home directory
+echo ""
+echo "_________________________________________________________"
+echo ""
+read -t 30 -p "$(echo -e '\033[31mClean the home directory? [y/n]: \033[0m')" answer || answer="y"
+
+# Convert the answer to lowercase
+answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
+
+# Verify user's answer
+if [ "$answer" = "y" ]; then
+    # Get the current user's home directory
+    home_directory="/home/$(whoami)"
+    
+    # Execute the clean_files function
+    clean_files "$home_directory"
+else
+    echo ""
+    echo "_________________________________________________________"
+    echo ""
+    echo -e "\033[31mNo cleaning will be performed.\033[0m"
+fi
+
+echo ""
+echo "_________________________________________________________"
+echo ""
+echo -e "\033[31mADVISORY: This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own computers and/or with the computer owner's permission.\033[0m"

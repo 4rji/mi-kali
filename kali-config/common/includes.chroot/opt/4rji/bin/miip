@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+check_ip() {
+    local ip="${1:-$(curl -s ifconfig.me)}"
+    local url="https://ipinfo.io/$ip/json"
+
+    echo -e "\e[38;5;94mInformacion IP de $url...\e[0m\n"
+    curl -s "$url" | jq -r '.ip, .city, .region, .country, .postal // empty' | awk '{print "\033[33m" $0 "\033[0m"}' || echo "No se pudo obtener la información."
+}
+
+check_ip

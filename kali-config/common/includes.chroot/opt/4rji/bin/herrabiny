@@ -1,0 +1,155 @@
+#!/usr/bin/env bash
+
+
+#sudo cp /usr/bin/batcat /usr/bin/bat
+# Colores
+verde='\e[0;32m'
+azul='\e[0;34m'
+reset='\e[0m'
+
+amarillo='\e[0;33m'
+reset='\e[0m'
+
+
+
+
+
+omitir=false
+omitirPreguntas=false
+
+# Verificar las opciones -o y -p
+while getopts "op" opt; do
+    case $opt in
+        o)
+            omitir=true
+            ;;
+        p)
+            omitirPreguntas=true
+            ;;
+        \?)
+            echo "Opción inválida: -$OPTARG" >&2
+            exit 1
+            ;;
+    esac
+done
+
+if [[ $omitir != true ]]; then
+    # Lista de paquetes a instalar
+    paquetes=("sudo" "chafa" "fzf" "curl" "rg" "fd-find" "git" "zoxide" "kitty" "nano" "ifupdown" "zsh" "xclip" "python3" "bat" "lsd" "tldr" "iproute2" "net-tools" "iputils" "moreutils")
+
+    # Instalar paquetes
+    echo "Instalando paquetes necesarios..."
+    sudo yum update -y && sudo yum install -y "${paquetes[@]}"
+
+    # Función para crear directorios temporales
+    function mktem() {
+        if [ -n "$1" ]; then
+            new_dir=$(mktemp -d /dev/shm/tmp."$1".XXXXXX)
+        else
+            new_dir=$(mktemp -d /dev/shm/tmp.XXXXXX)
+        fi
+
+        echo "Directorio creado en: $new_dir"
+        cd "$new_dir" || return
+        echo "Cambiado al directorio: $PWD"
+    }
+
+    # Crear directorio temporal y realizar operaciones
+    mktem
+    git clone --depth 1 https://github.com/4rji/bina.git
+    cd bina || exit 1
+    sudo mkdir -p /opt/4rji/bin
+    sudo cp -rf binarios/* /opt/4rji/bin
+    echo ""
+    echo -e "\033[1;34mbinarios actualizados\033[0m"
+    todou
+    cd || exit 1
+    echo ""
+fi
+
+# Comprobar si se debe omitir la sección de preguntas
+if [[ $omitirPreguntas == true ]]; then
+    echo ""
+    exit 0
+fi
+
+# Sección de preguntas empieza aquí
+
+
+
+
+
+
+
+echo ""
+echo -e "${verde}_________________________________________________________${reset}"
+
+
+
+
+
+# Preguntar al usuario si desea agregar la ruta al PATH
+read -p "Do you want to add /opt/4rji/bin to your PATH? (y/n): " -n 1 -r
+echo    # (opcional) mueve a una nueva línea
+
+# Por defecto, si el usuario presiona Enter, considera 'n'
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    # Agregar el directorio /opt/4rji/bin al PATH en ~/.zshrc
+    echo 'export PATH=$PATH:/opt/4rji/bin' >> ~/.zshrc
+    echo "The directory /opt/4rji/bin has been added to your PATH in ~/.zshrc."
+
+    # Opcional: recargar ~/.zshrc para aplicar los cambios sin necesidad de reiniciar la terminal
+    #source ~/.zshrc
+else
+    echo "No changes made to PATH."
+fi
+
+
+
+
+
+
+echo -e "${azul}"
+echo "_________________________________________________________"
+echo ""
+
+
+
+
+
+
+
+
+
+# Pregunta al usuario
+read -n1 -p "$(echo -e ${verde}'¿Instalar todos alias? (s/N): '${reset})" respuesta
+echo ""
+
+# Define un valor predeterminado si el usuario presiona Enter
+respuesta=${respuesta:-n}
+
+# Convierte la respuesta a minúsculas para facilitar la comparación
+respuesta=$(echo $respuesta | tr '[:upper:]' '[:lower:]')
+
+# Verifica la respuesta
+if [ "$respuesta" == "s" ]; then
+    echo -e "${verde}Instalando todos los alias... ${reset}"
+    wget -O - https://raw.githubusercontent.com/4rji/4rji/main/alias.sh | bash 
+    #source alias.sh  # Ejecuta el script descargado
+
+    # Borrar archivos
+    #rm alias.sh
+
+    # Aquí colocas el código para ejecutar bashfun
+else
+    echo ""
+fi
+
+
+
+
+
+
+/opt/4rji/bin/todou
+
+

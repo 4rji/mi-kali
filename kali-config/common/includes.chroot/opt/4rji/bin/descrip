@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+CONTENT="Agrega un resumen en el archivo descriptions.json en el formato existente:
+
+\\\"new_script\\\": {
+    \\\"name\\\": \\\"new_script\\\",
+    \\\"short_desc\\\": \\\"Short description of the script.\\\",
+    \\\"detailed_desc\\\": \\\"Detailed description of the script, including usage instructions and main commands the script execute.\\\"
+}"
+
+echo -e "$CONTENT" | pbcopy
+echo "Contenido copiado al portapapeles."

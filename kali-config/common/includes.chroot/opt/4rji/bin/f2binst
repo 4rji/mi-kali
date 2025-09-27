@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+echo ""
+
+# Función para verificar si un paquete está instalado
+paquete_instalado() {
+    dpkg -l "$1" | grep -q '^ii'
+}
+
+# Verificar si iptables está en el PATH
+if command -v iptables &>/dev/null; then
+    echo -e "\n\033[1;32miptables está disponible en el PATH.\033[0m\n"
+else
+    echo -e "\n\033[1;31miptables no se encontró en el PATH.\033[0m\n"
+    sleep 1
+    echo -e "\n\033[1;33mBUscarlo con:\033[0m\n"
+    echo -e "\n\033[1;34msudo find / -name iptables 2>/dev/null\033[0m\n"
+#    echo "export PATH=$PATH:/ruta/"
+    echo -e "\n\033[1;36mexport PATH=\$PATH:/usr/sbin/\033[0m\n"
+fi
+
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+
+# Verificar si iptables está instalado
+if paquete_instalado "iptables"; then
+    echo -e "\n\033[1;32mEl paquete iptables ya está instalado.\033[0m\n"
+else
+    echo -e "\n\033[1;31mInstalando el paquete iptables...\033[0m\n"
+    sudo apt-get install -y iptables
+fi
+
+echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
+
+paquetes=("rsyslog" "fail2ban")
+
+for paquete in "${paquetes[@]}"; do
+    if paquete_instalado "$paquete"; then
+        echo -e "\n\033[1;32mEl paquete $paquete ya está instalado.\033[0m\n"
+    else
+        echo -e "\n\033[1;31mInstalando el paquete $paquete...\033[0m\n"
+        sudo apt-get install -y "$paquete"
+    fi
+done
+
+sleep .5
+
+echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
+
+sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
+
+JAIL_FILE="/etc/fail2ban/jail.local"
+
+if [[ -f "$JAIL_FILE" ]]; then
+    sudo cp "$JAIL_FILE" "${JAIL_FILE}.bak"
+    sudo sed -i '/^\[sshd\]/,/^backend = %\(sshd_backend\)s/s/^/#/' "$JAIL_FILE"
+    sudo sed -i '1 i\[sshd]\nenabled = true\nport = ssh\nfilter = sshd\nlogpath = /var/log/auth.log\nmaxretry = 2\n' "$JAIL_FILE"
+    echo -e "\n\033[1;32mModificaciones aplicadas con éxito.\033[0m\n"
+else
+    echo -e "\n\033[1;31mEl archivo $JAIL_FILE no existe.\033[0m\n"
+fi
+
+sleep .5
+
+# Aliases para .bashrc
+#echo "alias rs2='sudo nano /etc/rsyslog.conf'" >> ~/.bashrc
+#echo "alias f2mod='sudo nano /etc/fail2ban/jail.local'" >> ~/.bashrc
+#echo "alias f2r='sudo systemctl restart fail2ban'" >> ~/.bashrc
+#echo "alias f2s='sudo systemctl status fail2ban'" >> ~/.bashrc
+#echo "alias f2b='read -p \"Ingresa IP a banear: \" ip && sudo fail2ban-client set sshd banip \$ip'" >> ~/.bashrc
+#echo "alias f2u='read -p \"Ingresa IP a unban: \" ip && sudo fail2ban-client set sshd unbanip \$ip'" >> ~/.bashrc
+#echo "alias f2j='sudo fail2ban-client status sshd'" >> ~/.bashrc
+
+# Aliases para .zshrc
+#echo "alias rs2='sudo nano /etc/rsyslog.conf'" >> ~/.zshrc
+#echo "alias f2mod='sudo nano /etc/fail2ban/jail.local'" >> ~/.zshrc
+#echo "alias f2r='sudo systemctl restart fail2ban'" >> ~/.zshrc
+#echo "alias f2s='sudo systemctl status fail2ban'" >> ~/.zshrc
+#echo "alias f2b='read -p \"Ingresa IP a banear: \" ip && sudo fail2ban-client set sshd banip \$ip'" >> ~/.zshrc
+#echo "alias f2u='read -p \"Ingresa IP a unban: \" ip && sudo fail2ban-client set sshd unbanip \$ip'" >> ~/.zshrc
+#echo "alias f2j='sudo fail2ban-client status sshd'" >> ~/.zshrc
+
+sudo systemctl enable --now fail2ban
+
+f2bcomm
+
+echo -e "\n\033[1;35mIMPORTANTE\033[0m\n"
+echo -e "\n\033[1;33mno se te olvide cambiar los tiempos de jail con f2mod alias\033[0m\n"
+echo -e "\n\033[1;34mpara tiempo ilimitado: bantime = -1\033[0m\n"
+echo -e "\n\033[1;32mpara ver los comandos de nuevo f2bcomm\033[0m\n"
+echo -e "\n\033[1;31magrega a f2mod estas lineas para whitelist\033[0m\n"
+echo -e "\n\033[1;36m[DEFAULT]\nignoreip = 127.0.0.1/8 192.168.0.1\033[0m\n"

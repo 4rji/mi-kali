@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+
+#reset
+echo ""
+
+# Check if the WireGuard interface name was provided
+if [ -z "$1" ]; then
+  echo "Usage: $0 <wireguard_interface>"
+  exit 1
+fi
+
+INTERFACE=$1
+CONFIG_FILE="/etc/wireguard/$INTERFACE.conf"
+
+# Check if systemd-resolved is active
+if ! systemctl is-active --quiet systemd-resolved; then
+  echo "systemd-resolved is not active. Do you want to activate it? (y/n)"
+  read -n1 activate_resolved
+  echo ""
+  if [ "$activate_resolved" = "y" ]; then
+    sudo systemctl start systemd-resolved
+  fi
+fi
+
+# Function to display the menu
+show_menu() {
+  echo ""
+  echo -e "\033[36m_________________________________________________________\033[0m"
+  echo ""
+  echo -e "\033[34mSelect an option:\033[0m"
+  echo -e "\033[32mc) Connect\033[0m"
+  echo -e "\033[33md) Disconnect\033[0m"
+  echo -e "\033[35mr) Reconnect\033[0m"
+  echo -e "\033[31ms) Show connection status\033[0m"
+  echo -e "\033[36mm) Modify configuration file\033[0m"
+  echo -e "\033[36mq) Exit\033[0m"
+  echo ""
+  echo -e "\033[36m_________________________________________________________\033[0m"
+  echo ""
+}
+
+# Check if nano is installed
+if ! command -v nano &> /dev/null; then
+  echo -e "\033[31mError: Nano editor is not installed. Please install it or use another editor.\033[0m"
+  exit 1
+fi
+
+# Main loop
+while true; do
+  show_menu
+  echo -e "\033[34mPress the corresponding key to select an option [c/d/r/s/m/q]: \033[0m"
+
+  # Read a single key without pressing Enter
+  read -n1 choice
+  echo ""
+
+  case $choice in
+    c)
+      echo -e "\033[32m\nConnecting to WireGuard interface: $INTERFACE\033[0m"
+      sudo wg-quick up $INTERFACE
+      ;;
+    d)
+      echo -e "\033[33m\nDisconnecting WireGuard interface: $INTERFACE\033[0m"
+      sudo wg-quick down $INTERFACE
+      ;;
+    r)
+      echo -e "\033[35m\nReconnecting WireGuard interface: $INTERFACE\033[0m"
+      sudo wg-quick down $INTERFACE && sudo wg-quick up $INTERFACE
+      ;;
+    s)
+      echo -e "\033[31m\nShowing the status of WireGuard interface: $INTERFACE\033[0m"
+      sudo wg show $INTERFACE
+      ;;
+    m)
+      echo -e "\033[36m\nModifying configuration file for: $INTERFACE\033[0m"
+      sudo nano $CONFIG_FILE
+      ;;
+    q)
+      echo -e "\033[36m\nExiting...\033[0m"
+      exit 0
+      ;;
+    *)
+      echo -e "\033[31m\nInvalid option. Please select a valid option [c/d/r/s/m/q].\033[0m"
+      ;;
+  esac
+done
